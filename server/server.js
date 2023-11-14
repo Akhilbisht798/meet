@@ -23,9 +23,12 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  socket.on('message', (message) => {
-    console.log("FROM CLIENT: ", message)
-    io.emit('message from server', message); 
+  socket.on("join_room", (data) => {
+    socket.join(data);
+    console.log("joined Room", data)
+  })
+  socket.on('message', (data) => {
+    socket.to(data.room).emit("recive_message", data.message);
   });
 
   socket.on('disconnect', () => {
