@@ -30,9 +30,14 @@ io.on('connection', (socket) => {
   socket.on('message', (data) => {
     socket.to(data.room).emit("recive_message", data.message);
   });
+  // Recive SDP FROM CALLER.
+  // FORWARD TO ANSWER CLIENT.
+  // ADD ROOM ALSO.
   socket.on("sdp_offer", (data) => {
     console.log("recived SDP", data);
+    socket.to(data.room).emit("recive_sdp_offer", data);
   })
+  // 
 
   socket.on('disconnect', () => {
     console.log('User disconnected');

@@ -26,8 +26,10 @@ function App() {
       console.log("Error Getting Stream: ", s);
     }
   };
+
+
   const callOrRecive = async (sdp) => {
-    const {peer, offer} = await initWebRtc({ stream });
+    const {peer, offer} = await initWebRtc({ stream, room });
     setPeerConnection(peer);
   }
   useEffect(() => {
@@ -37,7 +39,11 @@ function App() {
   }, [stream]);
   useEffect(() => {
     socket.on("recive_message", (data) => {
-      setReciveMessage(data)
+      setReciveMessage(data);
+    })
+    // Use Answer SPD function for this.
+    socket.on("recive_sdp_offer", (data) => {
+      console.log(data);
     })
   }, []);
   return (
