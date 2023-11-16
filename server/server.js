@@ -34,10 +34,14 @@ io.on('connection', (socket) => {
   // FORWARD TO ANSWER CLIENT.
   // ADD ROOM ALSO.
   socket.on("sdp_offer", (data) => {
-    console.log("recived SDP", data);
     socket.to(data.room).emit("recive_sdp_offer", data.sdp);
   })
-  // 
+  // Socket CLient will Send Answer
+  // Send this answer to back to caller.
+  socket.on("sdp_answer", (data) => {
+    console.log("RECived ANSWER, ", data.sdp);
+    socket.to(data.room).emit("recive_sdp_answer", data.sdp);
+  })
 
   socket.on('disconnect', () => {
     console.log('User disconnected');

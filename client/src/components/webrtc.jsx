@@ -22,6 +22,11 @@ export async function initWebRtc({ stream, room }) {
 				socket.emit("sdp_offer", { sdp: desc, room});
 			}
 		};
+		socket.on("recive_sdp_answer", (data) => {
+			console.log("Answer Recived from caller", data);
+			peerConnection.setRemoteDescription(data);
+			console.log("connection established.")
+		})
 		return peerConnection;
 	}catch (err) {
 		console.log("Error in Setting up peerConnection, ", err);
@@ -45,6 +50,7 @@ export async function initWebRtcAnswer({ stream, sdp, room }) {
 				socket.emit("sdp_answer", { sdp: desc, room });
 			}
 		};
+		
 		return peerConnection;
 	} catch (err) {
 		console.log("Error in setting up peerConnection ", err);

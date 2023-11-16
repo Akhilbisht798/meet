@@ -11,6 +11,7 @@ function App() {
   const [peerConnection, setPeerConnection] = useState(null)
   const videoRef = useRef(null)
 
+  // Helper Function
   const joinRoom = () => {
     if (room !== '') {
       socket.emit("join_room", room);
@@ -29,7 +30,6 @@ function App() {
     }
   };
 
-
   const callOrRecive = async () => {
     const peer = await initWebRtc({ stream, room });
     setPeerConnection(peer);
@@ -40,6 +40,8 @@ function App() {
     const peer = await initWebRtcAnswer({stream: s, sdp, room});
     setPeerConnection(peer);
   }
+
+  // UseEffects
   useEffect(() => {
       if (videoRef.current && stream) {
         videoRef.current.srcObject = stream; 
@@ -52,6 +54,10 @@ function App() {
     // Use Answer SPD function for this.
     socket.on("recive_sdp_offer", (data) => {
       setSdp(data);
+    })
+    socket.on("recive_sdp_answer", (data) => {
+      console.log("Answer Recived from caller", data);
+      
     })
   }, []);
   return (
