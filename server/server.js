@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
   // ADD ROOM ALSO.
   socket.on("sdp_offer", (data) => {
     console.log("recived SDP", data);
-    socket.to(data.room).emit("recive_sdp_offer", data);
+    socket.to(data.room).emit("recive_sdp_offer", data.sdp);
   })
   // 
 

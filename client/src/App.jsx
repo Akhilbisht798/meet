@@ -1,12 +1,13 @@
 import socket from "./components/socket"
 import { useEffect, useRef, useState } from "react";
-import { initWebRtc } from "./components/webrtc";
+import { initWebRtc, initWebRtcAnswer } from "./components/webrtc";
 
 function App() {
   const [room, setRoom] = useState("");
   const [message, setMessage] = useState("")
   const [reciveMessage, setReciveMessage] = useState('')
   const [stream, setStream] = useState(null);
+  const [sdp, setSdp] = useState(null);
   const [peerConnection, setPeerConnection] = useState(null)
   const videoRef = useRef(null)
 
@@ -22,14 +23,21 @@ function App() {
     try {
       const s = await navigator.mediaDevices.getUserMedia({video: true});
       setStream(s);
+      return s;
     } catch (err) {
       console.log("Error Getting Stream: ", s);
     }
   };
 
 
-  const callOrRecive = async (sdp) => {
-    const {peer, offer} = await initWebRtc({ stream, room });
+  const callOrRecive = async () => {
+    const peer = await initWebRtc({ stream, room });
+    setPeerConnection(peer);
+  }
+  const joinMeet = async () => {
+    const s = await getStream();
+    console.log(s);
+    const peer = await initWebRtcAnswer({stream: s, sdp, room});
     setPeerConnection(peer);
   }
   useEffect(() => {
@@ -43,7 +51,7 @@ function App() {
     })
     // Use Answer SPD function for this.
     socket.on("recive_sdp_offer", (data) => {
-      console.log(data);
+      setSdp(data);
     })
   }, []);
   return (
@@ -70,6 +78,9 @@ function App() {
 
       <div>
         <button onClick={callOrRecive}>Call</button>
+      </div>
+      <div>
+        <button onClick={joinMeet}>Join Meet</button>
       </div>
     </>
   )

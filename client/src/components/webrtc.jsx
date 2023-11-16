@@ -30,12 +30,13 @@ export async function initWebRtc({ stream, room }) {
 
 export async function initWebRtcAnswer({ stream, sdp, room }) {
 	try {
+		console.log("Stream from INITWEBRTCANSWER: ", stream);
 		const peerConnection = new RTCPeerConnection({ iceServers: config });
 		await stream.getTracks().forEach( function(track) {
 			peerConnection.addTrack(track, stream);
 		});
 		peerConnection.setRemoteDescription(sdp);
-		const answer = peerConnection.createAnswer()
+		const answer = await peerConnection.createAnswer()
 		peerConnection.setLocalDescription(answer);
 		peerConnection.onicegatheringstatechange = ev => {
 			if (peerConnection.iceGatheringState === 'complete') {
