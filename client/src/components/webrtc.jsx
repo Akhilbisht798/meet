@@ -1,4 +1,5 @@
 import socket from './socket.js'
+import { onReciveSDPAnswer } from './socketUtility.js';
 
 const config = [
    {
@@ -8,22 +9,31 @@ const config = [
 
 export async function initWebRtc({ stream, room }) {
 	try {
-		let offer; 
 		const peerConnection = new RTCPeerConnection({ iceServers: config });
 		await stream.getTracks().forEach( function(track) {
 			peerConnection.addTrack(track, stream);
 		});
-		offer = peerConnection.createOffer()
+		const offer = peerConnection.createOffer()
 		peerConnection.setLocalDescription(offer);
 		peerConnection.onicegatheringstatechange = ev => {
 			if (peerConnection.iceGatheringState === 'complete') {
-				console.log("SDP COMPLETE: SEND SDP")
 				const desc = peerConnection.localDescription
 				socket.emit("sdp_offer", { sdp: desc, room});
 			}
 		};
+		peerConnection.ontrack = e => {
+			const stream = e.streams[0];
+			const videoElement = document.getElementById('remoteVideo');
+			videoElement.srcObject = stream;
+			
+		}
+		peerConnection.onsignalingstatechange = e => {
+			console.log("State: ", peerConnection.iceConnectionState)
+			if (peerConnection.iceConnectionState === 'disconnected') {
+				console.log("client disconnected")
+			}
+		}
 		socket.on("recive_sdp_answer", (data) => {
-			console.log("Answer Recived from caller", data);
 			peerConnection.setRemoteDescription(data);
 			console.log("connection established.")
 		})
@@ -35,24 +45,36 @@ export async function initWebRtc({ stream, room }) {
 
 export async function initWebRtcAnswer({ stream, sdp, room }) {
 	try {
-		console.log("Stream from INITWEBRTCANSWER: ", stream);
 		const peerConnection = new RTCPeerConnection({ iceServers: config });
 		await stream.getTracks().forEach( function(track) {
 			peerConnection.addTrack(track, stream);
 		});
+		console.log("Sdp recived from caller", sdp)
 		peerConnection.setRemoteDescription(sdp);
 		const answer = await peerConnection.createAnswer()
 		peerConnection.setLocalDescription(answer);
 		peerConnection.onicegatheringstatechange = ev => {
 			if (peerConnection.iceGatheringState === 'complete') {
-				console.log("SDP COMPLETE: SEND ANSWER")
 				const desc = peerConnection.localDescription
 				socket.emit("sdp_answer", { sdp: desc, room });
 			}
 		};
-		
+		peerConnection.ontrack = e => {
+			const stream = e.streams[0];
+			const videoTrack = stream.getVideoTracks();
+			if (videoTrack.length > 0) {
+				console.log("video Track detected.");
+			}
+		}
+		peerConnection.onsignalingstatechange = e => {
+			console.log("State: ", peerConnection.iceConnectionState)
+			if (peerConnection.iceConnectionState === 'disconnected') {
+				console.log("client disconnected")
+			}
+		}
 		return peerConnection;
 	} catch (err) {
 		console.log("Error in setting up peerConnection ", err);
-	}
+	} 
+	
 }
