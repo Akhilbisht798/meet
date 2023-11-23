@@ -13,6 +13,12 @@ export async function initWebRtc({ stream, room }) {
 		await stream.getTracks().forEach( function(track) {
 			peerConnection.addTrack(track, stream);
 		});
+		peerConnection.ontrack = e => {
+			const stream = e.streams[0];
+			const videoElement = document.getElementById('remoteVideo');
+			videoElement.srcObject = stream;
+			
+		}
 		const offer = peerConnection.createOffer()
 		peerConnection.setLocalDescription(offer);
 		peerConnection.onicegatheringstatechange = ev => {
@@ -21,12 +27,6 @@ export async function initWebRtc({ stream, room }) {
 				socket.emit("sdp_offer", { sdp: desc, room});
 			}
 		};
-		peerConnection.ontrack = e => {
-			const stream = e.streams[0];
-			const videoElement = document.getElementById('remoteVideo');
-			videoElement.srcObject = stream;
-			
-		}
 		peerConnection.onsignalingstatechange = e => {
 			console.log("State: ", peerConnection.iceConnectionState)
 			if (peerConnection.iceConnectionState === 'disconnected') {
@@ -46,6 +46,11 @@ export async function initWebRtc({ stream, room }) {
 export async function initWebRtcAnswer({ stream, sdp, room }) {
 	try {
 		const peerConnection = new RTCPeerConnection({ iceServers: config });
+		peerConnection.ontrack = e => {
+			const stream = e.streams[0];
+			const videoElement = document.getElementById('remoteVideo');
+			videoElement.srcObject = stream;
+		}
 		await stream.getTracks().forEach( function(track) {
 			peerConnection.addTrack(track, stream);
 		});
@@ -59,13 +64,6 @@ export async function initWebRtcAnswer({ stream, sdp, room }) {
 				socket.emit("sdp_answer", { sdp: desc, room });
 			}
 		};
-		peerConnection.ontrack = e => {
-			const stream = e.streams[0];
-			const videoTrack = stream.getVideoTracks();
-			if (videoTrack.length > 0) {
-				console.log("video Track detected.");
-			}
-		}
 		peerConnection.onsignalingstatechange = e => {
 			console.log("State: ", peerConnection.iceConnectionState)
 			if (peerConnection.iceConnectionState === 'disconnected') {
