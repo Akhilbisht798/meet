@@ -3,13 +3,14 @@ const app = express();
 const http = require('http'); 
 const { Server } = require('socket.io')
 const cors = require('cors')
+require('dotenv').config()
 
-const port = 3000
+const port = process.env.PORT | 3000;
 app.use(cors());
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: {
-		origin: "http://localhost:5173",
+		origin: process.env.CLIENT_ORIGIN,
 		methods: ['GET', 'POST'],
 	}
 })
@@ -37,7 +38,6 @@ io.on('connection', (socket) => {
   // Socket CLient will Send Answer
   // Send this answer to back to caller.
   socket.on("sdp_answer", (data) => {
-    console.log("RECived ANSWER, ", data.sdp);
     socket.to(data.room).emit("recive_sdp_answer", data.sdp);
   })
 
@@ -49,4 +49,3 @@ io.on('connection', (socket) => {
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-

@@ -1,5 +1,4 @@
 import socket from './socket.js'
-import { onReciveSDPAnswer } from './socketUtility.js';
 
 const config = [
    {
